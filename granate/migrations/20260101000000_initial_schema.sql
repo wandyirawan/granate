@@ -1,17 +1,6 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Users table (relational, strict)
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    name TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'editor', -- admin, editor, viewer
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
 -- Content types schema (flexible storage)
 CREATE TABLE content_types (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -24,10 +13,13 @@ CREATE TABLE content_types (
 );
 
 -- Content entries (hybrid: IDs + JSONB)
+-- author_id references mangosteen user UUID (no FK constraint - separate service)
 CREATE TABLE entries (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     content_type_id UUID NOT NULL REFERENCES content_types(id) ON DELETE CASCADE,
-    author_id UUID NOT NULL REFERENCES users(id),
+    author_id UUID NOT NULL, -- mangosteen user UUID
+    author_name TEXT NOT NULL DEFAULT '', -- denormalized from JWT for display
+    author_email TEXT NOT NULL DEFAULT '', -- denormalized from JWT for display
     slug TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'draft', -- draft, published, archived
     data JSONB NOT NULL DEFAULT '{}', -- Main content fields (flexible)
@@ -60,7 +52,7 @@ CREATE TABLE media (
     size_bytes BIGINT NOT NULL,
     width INT,
     height INT,
-    uploaded_by UUID NOT NULL REFERENCES users(id),
+    uploaded_by UUID NOT NULL, -- mangosteen user UUID (no FK)
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -71,7 +63,6 @@ CREATE INDEX idx_entries_author ON entries(author_id);
 CREATE INDEX idx_entries_status ON entries(status);
 CREATE INDEX idx_entries_published_at ON entries(published_at);
 CREATE INDEX idx_entries_data_gin ON entries USING GIN(data); -- JSONB search
-CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_tags_slug ON tags(slug);
 
 -- Automatic updated_at trigger
@@ -82,9 +73,6 @@ BEGIN
     RETURN NEW;
 END;
 $$ language 'plpgsql';
-
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_content_types_updated_at BEFORE UPDATE ON content_types
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

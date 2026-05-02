@@ -3,12 +3,11 @@ use sqlx::PgPool;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use serde_json::Value as JsonValue;
-use crate::{models::Entry, error::AppError};
+use crate::{models::Entry, error::AppError, middleware::AuthenticatedUser, AppState};
 
 #[derive(Debug, Deserialize)]
 pub struct CreateEntryRequest {
     pub content_type_id: Uuid,
-    pub author_id: Uuid,
     pub slug: String,
     pub data: JsonValue,
     pub meta: Option<JsonValue>,
@@ -27,6 +26,8 @@ pub struct EntryResponse {
     pub id: Uuid,
     pub content_type_id: Uuid,
     pub author_id: Uuid,
+    pub author_name: String,
+    pub author_email: String,
     pub slug: String,
     pub status: String,
     pub data: JsonValue,
@@ -42,6 +43,8 @@ impl From<Entry> for EntryResponse {
             id: entry.id,
             content_type_id: entry.content_type_id,
             author_id: entry.author_id,
+            author_name: entry.author_name,
+            author_email: entry.author_email,
             slug: entry.slug,
             status: entry.status,
             data: entry.data,
@@ -55,15 +58,18 @@ impl From<Entry> for EntryResponse {
 
 pub async fn create(
     State(pool): State<PgPool>,
+    user: AuthenticatedUser,
     Json(req): Json<CreateEntryRequest>,
 ) -> Result<(StatusCode, Json<EntryResponse>), AppError> {
     let meta = req.meta.unwrap_or(serde_json::json!({}));
     
     let entry = sqlx::query_as::<_, Entry>(
-        "INSERT INTO entries (content_type_id, author_id, slug, data, meta) VALUES ($1, $2, $3, $4, $5) RETURNING *"
+        "INSERT INTO entries (content_type_id, author_id, author_name, author_email, slug, data, meta) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *"
     )
     .bind(req.content_type_id)
-    .bind(req.author_id)
+    .bind(user.id)
+    .bind(&user.name)
+    .bind(&user.email)
     .bind(&req.slug)
     .bind(&req.data)
     .bind(&meta)

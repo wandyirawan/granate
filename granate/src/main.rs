@@ -2,14 +2,34 @@ mod config;
 mod db;
 mod models;
 mod api;
-mod auth;
 mod error;
+mod middleware;
 
-use axum::{Router, routing::get};
+use axum::{Router, routing::get, extract::FromRef};
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use std::net::SocketAddr;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use sqlx::PgPool;
+use middleware::JwksState;
+
+#[derive(Clone)]
+pub struct AppState {
+    pub pool: PgPool,
+    pub jwks: JwksState,
+}
+
+impl FromRef<AppState> for PgPool {
+    fn from_ref(state: &AppState) -> Self {
+        state.pool.clone()
+    }
+}
+
+impl FromRef<AppState> for JwksState {
+    fn from_ref(state: &AppState) -> Self {
+        state.jwks.clone()
+    }
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -27,9 +47,18 @@ async fn main() -> anyhow::Result<()> {
     let pool = db::create_pool(&config.database_url).await?;
     sqlx::migrate!().run(&pool).await?;
     
+    let jwks = JwksState::new(config.mangosteen_jwks_url.clone());
+    
+    // Initial JWKS fetch
+    if let Err(e) = jwks.refresh_key().await {
+        tracing::warn!("Failed to fetch initial JWKS key: {}. Will retry on first request.", e);
+    }
+    
+    let state = AppState { pool, jwks };
+    
     let app = Router::new()
         .route("/health", get(api::health::handler))
-        .nest("/api/v1", api::router(pool))
+        .nest("/api/v1", api::router(state))
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http());
     

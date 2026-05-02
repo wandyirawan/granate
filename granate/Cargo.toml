@@ -18,7 +18,7 @@ thiserror = "1"
 dotenvy = "0.15"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-argon2 = "0.5"
+reqwest = { version = "0.12", features = ["json"] }
 jsonwebtoken = "9"
 validator = { version = "0.18", features = ["derive"] }
 async-trait = "0.1"

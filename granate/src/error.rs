@@ -15,6 +15,9 @@ pub enum AppError {
     
     #[error("Unauthorized")]
     Unauthorized,
+    
+    #[error("Forbidden")]
+    Forbidden,
 }
 
 impl IntoResponse for AppError {
@@ -24,6 +27,7 @@ impl IntoResponse for AppError {
             AppError::NotFound => (StatusCode::NOT_FOUND, "Not found"),
             AppError::Validation(msg) => (StatusCode::BAD_REQUEST, &msg),
             AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized"),
+            AppError::Forbidden => (StatusCode::FORBIDDEN, "Forbidden"),
         };
         
         (status, Json(json!({ "error": error_message }))).into_response()
