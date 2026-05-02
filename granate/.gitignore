@@ -5,17 +5,3 @@
 *~
 .DS_Store
 postgres_data/
-/target
-.env
-*.swp
-*.swo
-*~
-.DS_Store
-postgres_data/
-/target
-.env
-*.swp
-*.swo
-*~
-.DS_Store
-postgres_data/
