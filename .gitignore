@@ -1,3 +1,4 @@
 /target
 .aider*
 .env
+mangosteen_private_key.pem

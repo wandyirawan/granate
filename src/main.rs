@@ -31,8 +31,7 @@ async fn main() -> anyhow::Result<()> {
     let pool = db::create_pool(&config.database_url).await?;
     sqlx::migrate!().run(&pool).await?;
     
-    let pem = config.mangosteen_jwt_public_key.replace("\\n", "\n");
-    let decoding_key = jsonwebtoken::DecodingKey::from_rsa_pem(pem.as_bytes())?;
+    let decoding_key = jsonwebtoken::DecodingKey::from_rsa_pem(config.mangosteen_jwt_public_key.as_bytes())?;
     
     let auth_state = Arc::new(middleware::AuthState { decoding_key });
     
