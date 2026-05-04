@@ -3,6 +3,7 @@ use axum::{
     http::StatusCode,
     middleware::Next,
     response::Response,
+    body::Body,
 };
 use axum::http::Request;
 use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
@@ -22,14 +23,14 @@ pub struct AuthState {
 
 pub async fn auth_middleware(
     Extension(auth_state): Extension<Arc<AuthState>>,
-    mut request: Request,
+    mut request: Request<Body>,
     next: Next,
 ) -> Result<Response, StatusCode> {
     let auth_header = request
         .headers()
         .get("authorization")
-        .and_then(|h| h.to_str().ok())
-        .and_then(|h| h.strip_prefix("Bearer "));
+        .and_then(|h: &axum::http::HeaderValue| h.to_str().ok())
+        .and_then(|h: &str| h.strip_prefix("Bearer "));
     
     let token = auth_header.ok_or(StatusCode::UNAUTHORIZED)?;
     
