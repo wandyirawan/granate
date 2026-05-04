@@ -1,9 +1,10 @@
 use axum::{
     extract::Extension,
-    http::{Request, StatusCode},
+    http::StatusCode,
     middleware::Next,
     response::Response,
 };
+use axum::http::Request;
 use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
 use serde::Deserialize;
 use std::sync::Arc;
@@ -19,10 +20,10 @@ pub struct AuthState {
     pub decoding_key: DecodingKey,
 }
 
-pub async fn auth_middleware<B>(
+pub async fn auth_middleware(
     Extension(auth_state): Extension<Arc<AuthState>>,
-    mut request: Request<B>,
-    next: Next<B>,
+    mut request: Request,
+    next: Next,
 ) -> Result<Response, StatusCode> {
     let auth_header = request
         .headers()

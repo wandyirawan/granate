@@ -1,6 +1,6 @@
 use axum::{Router, routing::{post, get, put, delete}};
 
-mod health;
+pub mod health;
 mod entries;
 mod content_types;
 mod tags;
