@@ -22,7 +22,10 @@ async fn main() -> anyhow::Result<()> {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    dotenvy::dotenv().ok();
+    if let Err(e) = dotenvy::dotenv() {
+        tracing::warn!(".env file not loaded: {}. Using existing environment variables.", e);
+    }
+    
     let config = config::Config::from_env()?;
     
     let pool = db::create_pool(&config.database_url).await?;
