@@ -7,7 +7,6 @@ use axum::{
 use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
 use serde::Deserialize;
 use std::sync::Arc;
-use async_trait::async_trait;
 
 #[derive(Debug, Deserialize)]
 pub struct Claims {
@@ -44,11 +43,10 @@ pub async fn auth_middleware<B>(
 
 pub struct AuthUser(pub String);
 
-#[async_trait]
 impl<S: Send + Sync> axum::extract::FromRequestParts<S> for AuthUser {
     type Rejection = StatusCode;
 
-    async fn from_request_parts(parts: &mut axum::http::request::Parts, _state: &S) -> Result<Self, StatusCode> {
+    async fn from_request_parts(parts: &mut axum::http::request::Parts, _state: &S) -> Result<Self, Self::Rejection> {
         let user_id = parts.extensions.get::<String>().cloned();
         match user_id {
             Some(id) => Ok(AuthUser(id)),
