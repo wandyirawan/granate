@@ -44,7 +44,7 @@ CREATE TABLE entry_tags (
 CREATE TABLE media (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     filename TEXT NOT NULL,
-    key TEXT UNIQUE NOT NULL,
+    storage_key TEXT UNIQUE NOT NULL,
     mime_type TEXT NOT NULL,
     size_bytes BIGINT NOT NULL,
     width INT,
@@ -69,7 +69,7 @@ BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER update_content_types_updated_at BEFORE UPDATE ON content_types
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
