@@ -20,4 +20,5 @@ pub fn router() -> Router {
         .route("/tags", post(tags::create))
         .route("/tags", get(tags::list))
         .route("/tags/{id}", delete(tags::delete))
+        .route("/health", get(health::check))
 }
