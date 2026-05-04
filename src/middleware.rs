@@ -13,6 +13,7 @@ use std::sync::Arc;
 #[derive(Debug, Deserialize)]
 pub struct Claims {
     pub sub: String,
+    #[allow(dead_code)]
     pub exp: usize,
 }
 

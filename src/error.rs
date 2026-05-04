@@ -12,9 +12,6 @@ pub enum AppError {
     
     #[error("Validation error: {0}")]
     Validation(String),
-    
-    #[error("Unauthorized")]
-    Unauthorized,
 }
 
 impl IntoResponse for AppError {
@@ -23,7 +20,6 @@ impl IntoResponse for AppError {
             AppError::Database(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Database error".to_string()),
             AppError::NotFound => (StatusCode::NOT_FOUND, "Not found".to_string()),
             AppError::Validation(msg) => (StatusCode::BAD_REQUEST, msg),
-            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized".to_string()),
         };
         
         (status, Json(json!({ "error": error_message }))).into_response()
