@@ -141,6 +141,16 @@ GET /health
 - **Fearless concurrency** — async runtime handles thousands of connections on a single thread
 - **Compile-time guarantees** — if it builds, it's free of data races, null pointers, and use-after-free
 
+## Pomegranate Full Stack
+
+Granate is the **body/CMS** of **Pomegranate** (🍎), combined with **Pome** (head frontend):
+
+- **Pome** (Head) → Bun + Elysia + HTMX + Alpine.js + Pico CSS
+- **Granate** (Body) → Rust + Axum + PostgreSQL (this repo)
+- **Mangosteen** (Auth) → Go + Fiber + SQLite
+
+See: https://github.com/wandyirawan/pome
+
 ## Stack
 
 | Layer | Choice |
