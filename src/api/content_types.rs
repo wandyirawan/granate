@@ -6,7 +6,7 @@ use axum::{
 use sqlx::PgPool;
 use serde::Deserialize;
 use uuid::Uuid;
-use crate::{models::ContentType, error::AppError, middleware::AuthUser};
+use crate::{models::ContentType, error::AppError, middleware::AuthenticatedUser};
 
 #[derive(Debug, Deserialize)]
 pub struct CreateContentTypeRequest {
@@ -19,7 +19,7 @@ pub struct CreateContentTypeRequest {
 
 pub async fn create(
     Extension(pool): Extension<PgPool>,
-    AuthUser(_user_id): AuthUser,
+    AuthenticatedUser(_claims): AuthenticatedUser,
     Json(req): Json<CreateContentTypeRequest>,
 ) -> Result<Json<ContentType>, AppError> {
     let content_type = sqlx::query_as::<_, ContentType>(
@@ -75,7 +75,7 @@ pub struct UpdateContentTypeRequest {
 pub async fn update(
     Extension(pool): Extension<PgPool>,
     Path(id): Path<Uuid>,
-    AuthUser(_user_id): AuthUser,
+    AuthenticatedUser(_claims): AuthenticatedUser,
     Json(req): Json<UpdateContentTypeRequest>,
 ) -> Result<Json<ContentType>, AppError> {
     let content_type = sqlx::query_as::<_, ContentType>(
@@ -102,7 +102,7 @@ pub async fn update(
 pub async fn delete(
     Extension(pool): Extension<PgPool>,
     Path(id): Path<Uuid>,
-    AuthUser(_user_id): AuthUser,
+    AuthenticatedUser(_claims): AuthenticatedUser,
 ) -> Result<StatusCode, AppError> {
     let result = sqlx::query("DELETE FROM content_types WHERE id = $1")
         .bind(id)

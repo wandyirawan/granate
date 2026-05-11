@@ -6,7 +6,7 @@ use axum::{
 use sqlx::PgPool;
 use serde::Deserialize;
 use uuid::Uuid;
-use crate::{models::Entry, error::AppError, middleware::AuthUser};
+use crate::{models::Entry, error::AppError, middleware::AuthenticatedUser};
 
 #[derive(Debug, Deserialize)]
 pub struct CreateEntryRequest {
@@ -33,10 +33,10 @@ pub struct ListEntriesQuery {
 
 pub async fn create(
     Extension(pool): Extension<PgPool>,
-    AuthUser(user_id): AuthUser,
+    AuthenticatedUser(claims): AuthenticatedUser,
     Json(req): Json<CreateEntryRequest>,
 ) -> Result<Json<Entry>, AppError> {
-    let author_id = Uuid::parse_str(&user_id)
+    let author_id = Uuid::parse_str(&claims.sub)
         .map_err(|_| AppError::Validation("Invalid user ID".to_string()))?;
     
     let entry = sqlx::query_as::<_, Entry>(
@@ -124,7 +124,7 @@ pub struct UpdateEntryRequest {
 pub async fn update(
     Extension(pool): Extension<PgPool>,
     Path(id): Path<Uuid>,
-    AuthUser(_user_id): AuthUser,
+    AuthenticatedUser(_claims): AuthenticatedUser,
     Json(req): Json<UpdateEntryRequest>,
 ) -> Result<Json<Entry>, AppError> {
     let entry = sqlx::query_as::<_, Entry>(
@@ -153,7 +153,7 @@ pub async fn update(
 pub async fn delete(
     Extension(pool): Extension<PgPool>,
     Path(id): Path<Uuid>,
-    AuthUser(_user_id): AuthUser,
+    AuthenticatedUser(_claims): AuthenticatedUser,
 ) -> Result<StatusCode, AppError> {
     let result = sqlx::query("DELETE FROM entries WHERE id = $1")
         .bind(id)

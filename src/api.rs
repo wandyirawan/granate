@@ -4,6 +4,7 @@ pub mod health;
 mod entries;
 mod content_types;
 mod tags;
+pub mod auth;
 
 pub fn router() -> Router {
     Router::new()
@@ -20,5 +21,6 @@ pub fn router() -> Router {
         .route("/tags", post(tags::create))
         .route("/tags", get(tags::list))
         .route("/tags/{id}", delete(tags::delete))
+        .route("/auth/me", get(auth::me))
         .route("/health", get(health::handler))
 }

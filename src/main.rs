@@ -5,7 +5,7 @@ mod api;
 mod error;
 mod middleware;
 
-use axum::{Router, routing::get, Extension};
+use axum::{Router, routing::{post, get, put, delete}, extract::Extension};
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use std::net::SocketAddr;
@@ -27,22 +27,30 @@ async fn main() -> anyhow::Result<()> {
     }
     
     let config = config::Config::from_env()?;
+    let config = Arc::new(config);
     
     let pool = db::create_pool(&config.database_url).await?;
     sqlx::migrate!().run(&pool).await?;
     
-    let decoding_key = jsonwebtoken::DecodingKey::from_rsa_pem(config.mangosteen_jwt_public_key.as_bytes())?;
+    let jwks = middleware::jwt::fetch_jwks(&config.mangosteen_jwks_url).await?;
+    let auth_state = Arc::new(middleware::AuthState { jwks });
     
-    let auth_state = Arc::new(middleware::AuthState { decoding_key });
+    // Public routes (no auth required)
+    let public_routes = Router::new()
+        .route("/auth/login", post(api::auth::login))
+        .route("/auth/register", post(api::auth::register));
     
-    let api_routes = api::router()
+    // Protected routes (auth required)
+    let protected_routes = api::router()
         .layer(axum::middleware::from_fn(middleware::auth_middleware))
         .layer(Extension(auth_state))
-        .layer(Extension(pool.clone()));
+        .layer(Extension(config.clone()));
     
     let app = Router::new()
         .route("/health", get(api::health::handler))
-        .nest("/api/v1", api_routes)
+        .nest("/api/v1/auth", public_routes)
+        .nest("/api/v1", protected_routes)
+        .layer(Extension(pool.clone()))
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http());
     

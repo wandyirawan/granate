@@ -6,7 +6,7 @@ use axum::{
 use sqlx::PgPool;
 use serde::Deserialize;
 use uuid::Uuid;
-use crate::{models::Tag, error::AppError, middleware::AuthUser};
+use crate::{models::Tag, error::AppError, middleware::AuthenticatedUser};
 
 #[derive(Debug, Deserialize)]
 pub struct CreateTagRequest {
@@ -16,7 +16,7 @@ pub struct CreateTagRequest {
 
 pub async fn create(
     Extension(pool): Extension<PgPool>,
-    AuthUser(_user_id): AuthUser,
+    AuthenticatedUser(_claims): AuthenticatedUser,
     Json(req): Json<CreateTagRequest>,
 ) -> Result<Json<Tag>, AppError> {
     let tag = sqlx::query_as::<_, Tag>(
@@ -45,7 +45,7 @@ pub async fn list(
 pub async fn delete(
     Extension(pool): Extension<PgPool>,
     Path(id): Path<Uuid>,
-    AuthUser(_user_id): AuthUser,
+    AuthenticatedUser(_claims): AuthenticatedUser,
 ) -> Result<StatusCode, AppError> {
     let result = sqlx::query("DELETE FROM tags WHERE id = $1")
         .bind(id)
