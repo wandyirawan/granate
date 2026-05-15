@@ -10,6 +10,12 @@ pub enum AppError {
     #[error("Not found")]
     NotFound,
     
+    #[error("Bad request: {0}")]
+    BadRequest(String),
+
+    #[error("Internal error: {0}")]
+    Internal(String),
+    
     #[error("Validation error: {0}")]
     Validation(String),
 }
@@ -19,6 +25,8 @@ impl IntoResponse for AppError {
         let (status, error_message) = match self {
             AppError::Database(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Database error".to_string()),
             AppError::NotFound => (StatusCode::NOT_FOUND, "Not found".to_string()),
+            AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg),
+            AppError::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
             AppError::Validation(msg) => (StatusCode::BAD_REQUEST, msg),
         };
         

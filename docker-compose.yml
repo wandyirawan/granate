@@ -1,21 +1,2 @@
-version: '3.8'
-
-services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: granate
-      POSTGRES_PASSWORD: granate123
-      POSTGRES_DB: granate
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U granate"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  postgres_data:
+# Database: uses shared central Postgres (see ../infra/docker-compose.yml)
+# Connection: postgresql://granate:granate123@localhost:5433/granate

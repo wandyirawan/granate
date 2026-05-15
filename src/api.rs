@@ -5,6 +5,7 @@ mod entries;
 mod content_types;
 mod tags;
 pub mod auth;
+pub mod media;
 
 pub fn router() -> Router {
     Router::new()
@@ -21,6 +22,8 @@ pub fn router() -> Router {
         .route("/tags", post(tags::create))
         .route("/tags", get(tags::list))
         .route("/tags/{id}", delete(tags::delete))
+        .route("/media/upload", post(media::upload))
+        .route("/media", get(media::list_media))
         .route("/auth/me", get(auth::me))
         .route("/health", get(health::handler))
 }
