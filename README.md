@@ -26,9 +26,11 @@ A **lightweight headless CMS** written in Rust. Designed to run comfortably on a
 │  - Roles            │                     │  - Tags                  │
 └─────────────────────┘                     │  - Media + Variants      │
                                             │  - Product Pages         │
-                                            │                          │
-                                            │  Minio (S3)              │
-                                            │  - granate-media bucket  │
+       ┌────────────────────┐               │  - Parent Products (G1)  │
+       │       Salak        │               │  - Product Variants (G1) │
+       │   (Inventory)      │◄──────────────│                          │
+       │  Python/FastAPI    │  COGS fetch   │  Minio (S3)              │
+       └────────────────────┘               │  - granate-media bucket  │
                                             └──────────────────────────┘
 ```
 
@@ -82,6 +84,7 @@ The server starts on `http://localhost:3000`.
 | `MINIO_SECRET_KEY` | Minio secret key | `pomegranate123` |
 | `MINIO_BUCKET` | Minio bucket name | `granate-media` |
 | `PORT` | HTTP listen port | `3000` |
+| `SALAK_URL` | Salak inventory API URL | `http://localhost:8000` |
 
 ## API
 
@@ -155,6 +158,19 @@ curl -X POST http://localhost:3000/api/v1/media/upload \
 # Response includes original + variant URLs
 ```
 
+### Products (G1 — Phase 1)
+
+```bash
+POST   /api/v1/products                    Create parent product
+GET    /api/v1/products                    List all
+GET    /api/v1/products/{slug}             Get by slug (with variants + Salak enrichment)
+PUT    /api/v1/products/{id}               Update (soft delete → status='archived')
+POST   /api/v1/products/{id}/variants      Add variant (SKU, color, size)
+DELETE /api/v1/products/{id}/variants/{vid} Remove variant
+```
+
+Variants are enriched with Salak data (COGS, stock) on `get_by_slug`. If Salak is unreachable, `salak_data: null` — graceful degradation.
+
 ### Health
 
 ```bash
@@ -174,6 +190,8 @@ GET /health
 | `media_variants` | Image variants (thumb, catalog, full) per media |
 | `product_pages` | CMS-rich product pages linked to Salak products |
 | `product_blog_links` | Blog-to-product cross-references |
+| `parent_products` | Groupable products with option types (color, size) |
+| `product_variants` | Individual SKUs linked to parent + Salak |
 
 ## Auth Flow
 
@@ -195,13 +213,38 @@ GET /health
 
 Granate is the **body/CMS** of **Pomegranate** (🍎), combined with **Pome** (head frontend):
 
-- **Pome** (Head) → Bun + Elysia + HTMX + Alpine.js + Pico CSS
+- **Pome** (Head) → Bun + Hono + HTMX + Alpine.js + Pico CSS
 - **Granate** (Body) → Rust + Axum + PostgreSQL (this repo)
 - **Mangosteen** (Auth) → Go + Fiber + SQLite
 - **Salak** (Product) → Python + FastAPI + Granian
 - **Kelapa** (Ecommerce) → Elixir + Phoenix + Elm
 
 See: https://github.com/wandyirawan/saladbuah
+
+## Seed Data
+
+Dummy data Toko Busana Muslim — 10 produk, 58 varian:
+
+```bash
+# Run against granate DB
+podman exec -i jambu-postgres psql -U postgres -d granate < seeds/seed_busana_muslim.sql
+```
+
+| Kategori | Produk | Varian |
+|----------|--------|--------|
+| Pria | Baju Koko, Kemeja, Celana, Sarung, Peci | 7+7+7+3+3 |
+| Wanita | Gamis, Hijab Instan, Tunik, Rok, Cardigan | 8+5+7+6+5 |
+
+## Testing
+
+12 real tests (menggantikan 7 placeholder). Handler-level tests dengan PostgreSQL test DB.
+
+```bash
+# Pastikan Jambu running + migrations di granate DB
+DATABASE_URL="postgresql://postgres:***@localhost:5433/granate" cargo test -- --test-threads=1
+```
+
+`--test-threads=1` diperlukan karena test berbagi `granate_test` DB yang sama.
 
 ## Stack
 
