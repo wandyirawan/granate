@@ -78,3 +78,77 @@ pub struct ProductPage {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
+
+// --- Product Variant Models ---
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct ParentProduct {
+    pub id: Uuid,
+    pub name: String,
+    pub slug: String,
+    pub description: Option<String>,
+    pub thumbnail_media_id: Option<Uuid>,
+    pub option_types: JsonValue,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct ProductVariant {
+    pub id: Uuid,
+    pub parent_id: Uuid,
+    pub salak_sku: String,
+    pub option_values: JsonValue,
+    pub is_default: bool,
+    pub sort_order: i32,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ParentProductWithVariants {
+    pub id: Uuid,
+    pub name: String,
+    pub slug: String,
+    pub description: Option<String>,
+    pub thumbnail_media_id: Option<Uuid>,
+    pub option_types: JsonValue,
+    pub status: String,
+    pub variants: Vec<VariantWithSalak>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct VariantWithSalak {
+    pub id: Uuid,
+    pub salak_sku: String,
+    pub option_values: JsonValue,
+    pub is_default: bool,
+    pub sort_order: i32,
+    pub salak_data: Option<crate::salak::SalakProduct>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CreateParentProduct {
+    pub name: String,
+    pub description: Option<String>,
+    pub option_types: Option<Vec<String>>,
+    pub thumbnail_media_id: Option<Uuid>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateParentProduct {
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub option_types: Option<Vec<String>>,
+    pub thumbnail_media_id: Option<Uuid>,
+    pub status: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AddVariant {
+    pub salak_sku: String,
+    pub option_values: Option<JsonValue>,
+    pub is_default: Option<bool>,
+    pub sort_order: Option<i32>,
+}

@@ -5,6 +5,7 @@ mod api;
 mod error;
 mod middleware;
 mod media;
+mod salak;
 
 use axum::{Router, routing::get, extract::Extension};
 use tower_http::cors::CorsLayer;
@@ -79,6 +80,7 @@ async fn main() -> anyhow::Result<()> {
         .nest("/api/v1", protected_routes)
         .layer(Extension(pool.clone()))
         .layer(Extension(config.clone()))
+        .layer(Extension(config.salak_url.clone()))
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http());
 

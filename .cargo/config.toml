@@ -1,0 +1,10 @@
+[build]
+incremental = true
+rustc-wrapper = "sccache"
+
+[profile.dev]
+opt-level = 0
+
+[profile.dev.package."*"]
+opt-level = 1
+debug = false

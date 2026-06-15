@@ -1,11 +1,15 @@
 use axum::{Router, routing::{post, get, put, delete}};
 
 pub mod health;
-mod entries;
-mod content_types;
-mod tags;
+pub mod entries;
+pub mod content_types;
+pub mod tags;
 pub mod auth;
 pub mod media;
+pub mod products;
+
+#[cfg(test)]
+mod products_test;
 
 pub fn router() -> Router {
     Router::new()
@@ -26,4 +30,9 @@ pub fn router() -> Router {
         .route("/media", get(media::list_media))
         .route("/auth/me", get(auth::me))
         .route("/health", get(health::handler))
+        .route("/products", get(products::list).post(products::create))
+        .route("/products/{slug}", get(products::get_by_slug))
+        .route("/products/{id}", put(products::update).delete(products::delete))
+        .route("/products/{id}/variants", post(products::add_variant))
+        .route("/products/{id}/variants/{variant_id}", delete(products::remove_variant))
 }

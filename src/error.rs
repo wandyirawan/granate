@@ -12,12 +12,15 @@ pub enum AppError {
     
     #[error("Bad request: {0}")]
     BadRequest(String),
-
+    
     #[error("Internal error: {0}")]
     Internal(String),
     
     #[error("Validation error: {0}")]
     Validation(String),
+    
+    #[error("Salak API error: {0}")]
+    SalakApiError(String),
 }
 
 impl IntoResponse for AppError {
@@ -28,6 +31,7 @@ impl IntoResponse for AppError {
             AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg),
             AppError::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
             AppError::Validation(msg) => (StatusCode::BAD_REQUEST, msg),
+            AppError::SalakApiError(msg) => (StatusCode::BAD_GATEWAY, msg), // Salak API errors should return 502
         };
         
         (status, Json(json!({ "error": error_message }))).into_response()
