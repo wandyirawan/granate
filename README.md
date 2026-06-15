@@ -46,7 +46,7 @@ A **lightweight headless CMS** written in Rust. Designed to run comfortably on a
 - Rust 1.80+
 - PostgreSQL 16+ (or `docker-compose up -d`)
 - Minio (S3-compatible storage for media)
-- [Mangosteen](https://github.com/wandyirawan/mangosteen) running on port 4000 (provides auth)
+- [Mangosteen](https://github.com/wandyirawan/mangosteen) running on port 4001 (provides auth)
 
 ### Setup
 
@@ -61,8 +61,8 @@ git clone https://github.com/wandyirawan/granate && cd granate
 cp .env.example .env
 # Edit .env and set:
 # - DATABASE_URL=postgresql://granate:granate123@localhost:5433/granate
-# - MANGOSTEEN_URL=http://localhost:4000
-# - MANGOSTEEN_JWKS_URL=http://localhost:4000/api/.well-known/jwks.json
+# - MANGOSTEEN_URL=http://localhost:4001
+# - MANGOSTEEN_JWKS_URL=http://localhost:4001/api/.well-known/jwks.json
 # - MINIO_ENDPOINT=localhost:9000
 # - MINIO_BUCKET=granate-media
 
@@ -77,14 +77,14 @@ The server starts on `http://localhost:3000`.
 | Variable | Description | Default |
 |---|---|---|
 | `DATABASE_URL` | PostgreSQL connection string | — |
-| `MANGOSTEEN_URL` | Mangosteen base URL | `http://localhost:4000` |
-| `MANGOSTEEN_JWKS_URL` | Mangosteen JWKS endpoint | `http://localhost:4000/api/.well-known/jwks.json` |
+| `MANGOSTEEN_URL` | Mangosteen base URL | `http://localhost:4001` |
+| `MANGOSTEEN_JWKS_URL` | Mangosteen JWKS endpoint | `http://localhost:4001/api/.well-known/jwks.json` |
 | `MINIO_ENDPOINT` | Minio S3 endpoint | `localhost:9000` |
 | `MINIO_ACCESS_KEY` | Minio access key | `pomegranate` |
 | `MINIO_SECRET_KEY` | Minio secret key | `pomegranate123` |
 | `MINIO_BUCKET` | Minio bucket name | `granate-media` |
 | `PORT` | HTTP listen port | `3000` |
-| `SALAK_URL` | Salak inventory API URL | `http://localhost:8000` |
+| `SALAK_URL` | Salak inventory API URL | `http://localhost:4002` |
 
 ## API
 
